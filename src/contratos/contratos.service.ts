@@ -15,6 +15,7 @@ export class ContratosService {
 
   async create(createContratoDto: CreateContratoDto) {
     const { equipamentos, ...dados } = createContratoDto;
+
     const contratoParaSalvar = {
       nome: dados.nome,
       cpf: dados.cpf,
@@ -25,38 +26,20 @@ export class ContratosService {
       telefone: dados.telefone,
       email: dados.email,
       data_locacao: dados.dataLocacao,
-      data_entrega: dados.dataEntrega
+      data_entrega: dados.dataEntrega,
     };
 
     const { data: contrato, error: errorContrato } = await this.supabase
       .from('contratos')
       .insert([contratoParaSalvar])
-      .select()
+      .select('id, telefone')
       .single();
 
-    if (errorContrato) {
-      console.error('Erro ao inserir contrato:', errorContrato);
-      throw errorContrato;
-    }
-
-    const equipamentosComId = equipamentos.map(item => ({
-      contrato_id: contrato.id,
-      descricao: item.descricao,
-      quantidade: item.quantidade,
-      valor: item.valor,
-    }));
-    const { error: errorEquip } = await this.supabase
-      .from('equipamentos')
-      .insert(equipamentosComId);
-    if (errorEquip) {
-      console.error('Erro ao inserir equipamentos:', errorEquip);
-      throw errorEquip;
-    }
+    if (errorContrato) throw errorContrato;
     return {
-      message: 'Contrato e equipamentos salvos com sucesso!',
-      contratoId: contrato.id,
-      customerEmail: contrato.email,
-      linkAssinatura: `http://localhost:4200/assinar/${contrato.id}`,
+      id: contrato.id,
+      message: 'Contrato criado com sucesso!',
+      telefone: contrato.telefone,
     };
   }
 
