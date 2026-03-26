@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CreateContratoDto } from './dto/create-contrato.dto';
+import { UpdateSignatureDto } from './dto/update-signature.dto';
 
 @Injectable()
 export class ContratosService {
@@ -61,5 +62,24 @@ export class ContratosService {
 
     if (error) throw error;
     return data;
+  }
+
+  async updateSignature(id: string, updateSignatureDto: UpdateSignatureDto) {
+    const { data, error } = await this.supabase
+      .from('contratos')
+      .update({ signature: updateSignatureDto.signature })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao salvar assinatura:', error);
+      throw error;
+    }
+
+    return {
+      message: 'Assinatura salva com sucesso!',
+      id: data.id
+    };
   }
 }

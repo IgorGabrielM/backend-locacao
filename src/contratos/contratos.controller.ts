@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch } from '@nestjs/common';
 import { ContratosService } from './contratos.service';
 import { CreateContratoDto } from './dto/create-contrato.dto';
+import { UpdateSignatureDto } from './dto/update-signature.dto';
 
 @Controller('contratos')
 export class ContratosController {
@@ -19,5 +20,12 @@ export class ContratosController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.contratosService.findOne(id);
+  }
+
+  @Patch(':id/signature')
+  async updateSignature(
+    @Param('id') id: string,
+    @Body() updateSignatureDto: UpdateSignatureDto) {
+    return this.contratosService.updateSignature(id, updateSignatureDto);
   }
 }
