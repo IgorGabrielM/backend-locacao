@@ -37,6 +37,23 @@ export class ContratosService {
       .single();
 
     if (errorContrato) throw errorContrato;
+
+    const equipamentosParaSalvar = equipamentos.map((item) => ({
+      contrato_id: contrato.id,
+      descricao: item.descricao,
+      quantidade: item.quantidade,
+      valor: item.valor,
+    }));
+
+    const { error: errorEquipamentos } = await this.supabase
+      .from('equipamentos')
+      .insert(equipamentosParaSalvar);
+
+    if (errorEquipamentos) {
+      await this.supabase.from('contratos').delete().eq('id', contrato.id);
+      throw errorEquipamentos;
+    }
+
     return {
       id: contrato.id,
       message: 'Contrato criado com sucesso!',
