@@ -23,8 +23,7 @@ export class CreateContratoDto {
   @IsString() endereco: string;
   @IsString() bairro: string;
   @IsString() telefone: string;
-  @IsOptional() @IsEmail() email?: string;
-  @IsString() dataLocacao?: string;
+  @IsOptional() email?: string;
   @IsOptional() @IsString() dataEntrega: string;
 
   @IsArray()
