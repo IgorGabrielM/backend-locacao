@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CreateContratoDto } from './dto/create-contrato.dto';
-import { UpdateSignatureDto } from './dto/update-signature.dto';
+import {
+  UpdateClosureDto,
+  UpdateSignatureDto,
+} from './dto/update-signature.dto';
 
 @Injectable()
 export class ContratosService {
@@ -19,14 +22,14 @@ export class ContratosService {
 
     const contratoParaSalvar = {
       nome: dados.nome,
-      cpf: dados.cpf,
-      rg: dados.rg,
+      cpf: dados?.cpf,
+      rg: dados?.rg,
       cidade: dados.cidade,
       endereco: dados.endereco,
       bairro: dados.bairro,
       telefone: dados.telefone,
-      email: dados.email,
-      data_locacao: dados.dataLocacao,
+      email: dados?.email,
+      data_locacao: dados?.dataLocacao,
       data_entrega: dados.dataEntrega,
     };
 
@@ -96,6 +99,25 @@ export class ContratosService {
 
     return {
       message: 'Assinatura salva com sucesso!',
+      id: data.id
+    };
+  }
+
+  async updateClosure(id: string, updateClosureDto: UpdateClosureDto) {
+    const { data, error } = await this.supabase
+      .from('contratos')
+      .update({ dataEncerramento: updateClosureDto.dataEncerramento })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao salvar data de encerramento:', error);
+      throw error;
+    }
+
+    return {
+      message: 'Data de encerramento salva com sucesso!',
       id: data.id
     };
   }

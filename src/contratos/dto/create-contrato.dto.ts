@@ -9,14 +9,14 @@ class EquipamentoDto {
 
 export class CreateContratoDto {
   @IsString() nome: string;
-  @IsString() cpf: string;
-  @IsString() rg: string;
+  @IsString() cpf?: string;
+  @IsString() rg?: string;
   @IsString() cidade: string;
   @IsString() endereco: string;
   @IsString() bairro: string;
   @IsString() telefone: string;
-  @IsEmail() email: string;
-  @IsString() dataLocacao: string;
+  @IsEmail() email?: string;
+  @IsString() dataLocacao?: string;
   @IsString() dataEntrega: string;
 
   @IsArray()

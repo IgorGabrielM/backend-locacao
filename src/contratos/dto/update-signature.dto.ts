@@ -5,3 +5,9 @@ export class UpdateSignatureDto {
   @IsNotEmpty()
   signature: string;
 }
+
+export class UpdateClosureDto {
+  @IsString()
+  @IsNotEmpty()
+  dataEncerramento: string;
+}
