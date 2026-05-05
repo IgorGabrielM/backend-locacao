@@ -1,10 +1,7 @@
 import { Controller, Post, Body, Get, Param, Patch } from '@nestjs/common';
 import { ContratosService } from './contratos.service';
 import { CreateContratoDto } from './dto/create-contrato.dto';
-import {
-  UpdateClosureDto,
-  UpdateSignatureDto,
-} from './dto/update-signature.dto';
+import { UpdateSignatureDto } from './dto/update-signature.dto';
 
 @Controller('contratos')
 export class ContratosController {
@@ -33,9 +30,7 @@ export class ContratosController {
   }
 
   @Patch(':id/closure')
-  async updateClosure(
-    @Param('id') id: string,
-    @Body() updateSignatureDto: UpdateClosureDto) {
-    return this.contratosService.updateClosure(id, updateSignatureDto);
+  async updateClosure(@Param('id') id: string) {
+    return this.contratosService.closeContract(id);
   }
 }
