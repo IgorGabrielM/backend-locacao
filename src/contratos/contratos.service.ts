@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CreateContratoDto } from './dto/create-contrato.dto';
-import {
-  UpdateSignatureDto,
-} from './dto/update-signature.dto';
+import { UpdateSignatureDto } from './dto/update-signature.dto';
+import { LinkEquipamentoDto } from './dto/link-equipamento.dto';
 
 @Injectable()
 export class ContratosService {
@@ -17,56 +16,36 @@ export class ContratosService {
   }
 
   async create(createContratoDto: CreateContratoDto) {
-    const { equipamentos, ...dados } = createContratoDto;
-
-    const contratoParaSalvar = {
-      nome: dados.nome,
-      cpf: dados?.cpf,
-      rg: dados?.rg,
-      cidade: dados.cidade,
-      endereco: dados.endereco,
-      bairro: dados.bairro,
-      telefone: dados.telefone,
-      email: dados?.email,
-      data_entrega: dados.dataEntrega,
-      status: 'Sem assinatura',
-    };
-
-    const { data: contrato, error: errorContrato } = await this.supabase
+    const { data, error } = await this.supabase
       .from('contratos')
-      .insert([contratoParaSalvar])
+      .insert([{
+        nome: createContratoDto.nome,
+        cpf: createContratoDto.cpf,
+        rg: createContratoDto.rg,
+        cidade: createContratoDto.cidade,
+        endereco: createContratoDto.endereco,
+        bairro: createContratoDto.bairro,
+        telefone: createContratoDto.telefone,
+        email: createContratoDto.email,
+        data_entrega: createContratoDto.dataEntrega,
+        status: 'Sem assinatura',
+      }])
       .select('id, telefone')
       .single();
 
-    if (errorContrato) throw errorContrato;
-
-    const equipamentosParaSalvar = equipamentos.map((item) => ({
-      contrato_id: contrato.id,
-      descricao: item.descricao,
-      quantidade: item.quantidade,
-      valor: item.valor,
-    }));
-
-    const { error: errorEquipamentos } = await this.supabase
-      .from('equipamentos')
-      .insert(equipamentosParaSalvar);
-
-    if (errorEquipamentos) {
-      await this.supabase.from('contratos').delete().eq('id', contrato.id);
-      throw errorEquipamentos;
-    }
+    if (error) throw error;
 
     return {
-      id: contrato.id,
+      id: data.id,
       message: 'Contrato criado com sucesso!',
-      telefone: contrato.telefone,
+      telefone: data.telefone,
     };
   }
 
   async findAll() {
     const { data, error } = await this.supabase
       .from('contratos')
-      .select('*, equipamentos(*)');
+      .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao))');
 
     if (error) throw error;
     return data;
@@ -75,7 +54,7 @@ export class ContratosService {
   async findOne(id: string) {
     const { data, error } = await this.supabase
       .from('contratos')
-      .select('*, equipamentos(*)')
+      .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao))')
       .eq('id', id)
       .single();
 
@@ -101,7 +80,7 @@ export class ContratosService {
 
     return {
       message: 'Assinatura salva com sucesso!',
-      id: data.id
+      id: data.id,
     };
   }
 
@@ -124,5 +103,33 @@ export class ContratosService {
     return {
       message: 'Contrato encerrado com sucesso!',
     };
+  }
+
+  async linkEquipamento(contratoId: string, dto: LinkEquipamentoDto) {
+    const { data, error } = await this.supabase
+      .from('contrato_equipamentos')
+      .insert([{
+        contrato_id: contratoId,
+        equipamento_id: dto.equipamentoId,
+        quantidade: dto.quantidade,
+        valor_cobrado: dto.valorCobrado,
+      }])
+      .select('*, equipamentos(id, descricao, valor_padrao)')
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async unlinkEquipamento(contratoId: string, itemId: string) {
+    const { error } = await this.supabase
+      .from('contrato_equipamentos')
+      .delete()
+      .eq('id', itemId)
+      .eq('contrato_id', contratoId);
+
+    if (error) throw error;
+
+    return { message: 'Equipamento desvinculado com sucesso!' };
   }
 }

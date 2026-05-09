@@ -2,12 +2,14 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ContratosModule } from './contratos/contratos.module';
+import { EquipamentosModule } from './equipamentos/equipamentos.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ContratosModule,
+    EquipamentosModule,
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
   ],
