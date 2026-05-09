@@ -105,11 +105,11 @@ export class ContratosService {
     };
   }
 
-  async closeContract(id: string) {
+  async closeContract(id: string, dataEncerramento: string) {
     const { error } = await this.supabase
       .from('contratos')
       .update({
-        data_encerramento: new Date().toISOString(),
+        data_encerramento: dataEncerramento,
         status: 'Encerrado',
       })
       .eq('id', id)
