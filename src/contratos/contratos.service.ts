@@ -1,33 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateSignatureDto } from './dto/update-signature.dto';
 import { LinkEquipamentoDto } from './dto/link-equipamento.dto';
 
 @Injectable()
 export class ContratosService {
-  private supabase: SupabaseClient;
+  constructor(private configService: ConfigService) {}
 
-  constructor(private configService: ConfigService) {
-    const url = this.configService.get<string>('SUPABASE_URL')!;
-    const key = this.configService.get<string>('SUPABASE_KEY')!;
-    this.supabase = createClient(url, key);
+  private getClient(token: string) {
+    return createClient(
+      this.configService.get<string>('SUPABASE_URL')!,
+      this.configService.get<string>('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: `Bearer ${token}` } } },
+    );
   }
 
-  async create(createContratoDto: CreateContratoDto) {
-    const { data, error } = await this.supabase
+  async create(dto: CreateContratoDto, userId: string, token: string) {
+    const { data, error } = await this.getClient(token)
       .from('contratos')
       .insert([{
-        nome: createContratoDto.nome,
-        cpf: createContratoDto.cpf,
-        rg: createContratoDto.rg,
-        cidade: createContratoDto.cidade,
-        endereco: createContratoDto.endereco,
-        bairro: createContratoDto.bairro,
-        telefone: createContratoDto.telefone,
-        email: createContratoDto.email,
-        data_entrega: createContratoDto.dataEntrega,
+        user_id: userId,
+        nome: dto.nome,
+        cpf: dto.cpf,
+        rg: dto.rg,
+        cidade: dto.cidade,
+        endereco: dto.endereco,
+        bairro: dto.bairro,
+        telefone: dto.telefone,
+        email: dto.email,
+        data_entrega: dto.dataEntrega,
         status: 'Sem assinatura',
       }])
       .select('id, telefone')
@@ -42,8 +45,8 @@ export class ContratosService {
     };
   }
 
-  async findAll() {
-    const { data, error } = await this.supabase
+  async findAll(token: string) {
+    const { data, error } = await this.getClient(token)
       .from('contratos')
       .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao))');
 
@@ -51,8 +54,8 @@ export class ContratosService {
     return data;
   }
 
-  async findOne(id: string) {
-    const { data, error } = await this.supabase
+  async findOne(id: string, token: string) {
+    const { data, error } = await this.getClient(token)
       .from('contratos')
       .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao))')
       .eq('id', id)
@@ -62,51 +65,34 @@ export class ContratosService {
     return data;
   }
 
-  async updateSignature(id: string, updateSignatureDto: UpdateSignatureDto) {
-    const { data, error } = await this.supabase
+  async updateSignature(id: string, dto: UpdateSignatureDto, token: string) {
+    const { data, error } = await this.getClient(token)
       .from('contratos')
-      .update({
-        signature: updateSignatureDto.signature,
-        status: 'Em andamento',
-      })
+      .update({ signature: dto.signature, status: 'Em andamento' })
       .eq('id', id)
       .select()
       .single();
 
-    if (error) {
-      console.error('Erro ao salvar assinatura:', error);
-      throw error;
-    }
+    if (error) throw error;
 
-    return {
-      message: 'Assinatura salva com sucesso!',
-      id: data.id,
-    };
+    return { message: 'Assinatura salva com sucesso!', id: data.id };
   }
 
-  async closeContract(id: string, dataEncerramento: string) {
-    const { error } = await this.supabase
+  async closeContract(id: string, dataEncerramento: string, token: string) {
+    const { error } = await this.getClient(token)
       .from('contratos')
-      .update({
-        data_encerramento: dataEncerramento,
-        status: 'Encerrado',
-      })
+      .update({ data_encerramento: dataEncerramento, status: 'Encerrado' })
       .eq('id', id)
       .select()
       .single();
 
-    if (error) {
-      console.error('Erro ao encerrar contrato:', error);
-      throw error;
-    }
+    if (error) throw error;
 
-    return {
-      message: 'Contrato encerrado com sucesso!',
-    };
+    return { message: 'Contrato encerrado com sucesso!' };
   }
 
-  async linkEquipamento(contratoId: string, dto: LinkEquipamentoDto) {
-    const { data, error } = await this.supabase
+  async linkEquipamento(contratoId: string, dto: LinkEquipamentoDto, token: string) {
+    const { data, error } = await this.getClient(token)
       .from('contrato_equipamentos')
       .insert([{
         contrato_id: contratoId,
@@ -121,8 +107,8 @@ export class ContratosService {
     return data;
   }
 
-  async unlinkEquipamento(contratoId: string, itemId: string) {
-    const { error } = await this.supabase
+  async unlinkEquipamento(contratoId: string, itemId: string, token: string) {
+    const { error } = await this.getClient(token)
       .from('contrato_equipamentos')
       .delete()
       .eq('id', itemId)
