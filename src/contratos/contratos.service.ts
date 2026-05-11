@@ -82,7 +82,6 @@ export class ContratosService {
     const equipamentos = (contrato_equipamentos ?? []).map((ce: any) => ({
       equipamento_id: ce.equipamento_id,
       descricao: ce.equipamentos?.descricao,
-      valor_padrao: ce.equipamentos?.valor_padrao,
       quantidade: ce.quantidade,
       valor_cobrado: ce.valor_cobrado,
     }));
@@ -102,7 +101,7 @@ export class ContratosService {
     const { data, error } = await this.getClient(token)
       .from('contratos')
       .select(
-        '*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao, valor_padrao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao, valor_padrao)))',
+        '*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao)))',
       )
       .is('contrato_pai_id', null);
 
@@ -114,7 +113,7 @@ export class ContratosService {
     const { data, error } = await this.getClient(token)
       .from('contratos')
       .select(
-        '*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao, valor_padrao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao, valor_padrao)))',
+        '*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao)))',
       )
       .eq('id', id)
       .single();
