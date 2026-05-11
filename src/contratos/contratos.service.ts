@@ -68,7 +68,7 @@ export class ContratosService {
     const { data, error } = await this.getClient(token)
       .from('contratos')
       .select(
-        '*, contrato_equipamentos(*, equipamento(id, descricao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamento(id, descricao)))',
+        '*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))',
       )
       .is('contrato_pai_id', null);
 
@@ -80,7 +80,7 @@ export class ContratosService {
     const { data, error } = await this.getClient(token)
       .from('contratos')
       .select(
-        '*, contrato_equipamentos(*, equipamento(id, descricao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamento(id, descricao)))',
+        '*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))',
       )
       .eq('id', id)
       .single();
