@@ -22,27 +22,29 @@ export class ContratosService {
 
     const { data, error } = await client
       .from('contratos')
-      .insert([{
-        user_id: userId,
-        nome: dto.nome,
-        cpf: dto.cpf,
-        rg: dto.rg,
-        cidade: dto.cidade,
-        endereco: dto.endereco,
-        bairro: dto.bairro,
-        telefone: dto.telefone,
-        email: dto.email,
-        data_entrega: dto.dataEntrega,
-        status: 'Sem assinatura',
-        contrato_pai_id: dto.contratoPaiId ?? null,
-      }])
+      .insert([
+        {
+          user_id: userId,
+          nome: dto.nome,
+          cpf: dto.cpf,
+          rg: dto.rg,
+          cidade: dto.cidade,
+          endereco: dto.endereco,
+          bairro: dto.bairro,
+          telefone: dto.telefone,
+          email: dto.email,
+          data_entrega: dto.dataEntrega,
+          status: 'Sem assinatura',
+          contrato_pai_id: dto.contratoPaiId ?? null,
+        },
+      ])
       .select('id, telefone')
       .single();
 
     if (error) throw error;
 
     if (dto.equipamentos?.length) {
-      const ids = dto.equipamentos.map((e) => e.equipamentoId);
+      const ids = dto.equipamentos.map((e) => e.equipamento_id);
 
       const { data: equips, error: equipsError } = await client
         .from('equipamentos')
@@ -55,9 +57,9 @@ export class ContratosService {
 
       const links = dto.equipamentos.map((e) => ({
         contrato_id: data.id,
-        equipamento_id: e.equipamentoId,
+        equipamento_id: e.equipamento_id,
         quantidade: e.quantidade,
-        valor_cobrado: valorMap.get(e.equipamentoId) ?? 0,
+        valor_cobrado: valorMap.get(e.equipamento_id) ?? 0,
       }));
 
       const { error: linkError } = await client
@@ -77,7 +79,9 @@ export class ContratosService {
   async findAll(token: string) {
     const { data, error } = await this.getClient(token)
       .from('contratos')
-      .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))')
+      .select(
+        '*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))',
+      )
       .is('contrato_pai_id', null);
 
     if (error) throw error;
@@ -87,7 +91,9 @@ export class ContratosService {
   async findOne(id: string, token: string) {
     const { data, error } = await this.getClient(token)
       .from('contratos')
-      .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))')
+      .select(
+        '*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))',
+      )
       .eq('id', id)
       .single();
 
@@ -121,15 +127,21 @@ export class ContratosService {
     return { message: 'Contrato encerrado com sucesso!' };
   }
 
-  async linkEquipamento(contratoId: string, dto: LinkEquipamentoDto, token: string) {
+  async linkEquipamento(
+    contratoId: string,
+    dto: LinkEquipamentoDto,
+    token: string,
+  ) {
     const { data, error } = await this.getClient(token)
       .from('contrato_equipamentos')
-      .insert([{
-        contrato_id: contratoId,
-        equipamento_id: dto.equipamentoId,
-        quantidade: dto.quantidade,
-        valor_cobrado: dto.valorCobrado,
-      }])
+      .insert([
+        {
+          contrato_id: contratoId,
+          equipamento_id: dto.equipamento_id,
+          quantidade: dto.quantidade,
+          valor_cobrado: dto.valorCobrado,
+        },
+      ])
       .select('*, equipamentos(id, descricao, valor_padrao)')
       .single();
 

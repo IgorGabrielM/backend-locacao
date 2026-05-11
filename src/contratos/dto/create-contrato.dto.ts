@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsUUID, IsArray, ValidateNested, IsNumber } from 
 import { Type } from 'class-transformer';
 
 export class ContratoEquipamentoItemDto {
-  @IsUUID() equipamentoId: string;
+  @IsUUID() equipamento_id: string;
   @IsNumber() quantidade: number;
 }
 
