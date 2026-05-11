@@ -44,10 +44,22 @@ export class ContratosService {
     if (error) throw error;
 
     if (dto.equipamentos?.length) {
+      const ids = dto.equipamentos.map((e) => e.equipamento_id);
+
+      const { data: equips, error: equipsError } = await client
+        .from('equipamentos')
+        .select('id, valor_padrao')
+        .in('id', ids);
+
+      if (equipsError) throw equipsError;
+
+      const valorMap = new Map(equips.map((e) => [e.id, e.valor_padrao as number]));
+
       const links = dto.equipamentos.map((e) => ({
         contrato_id: data.id,
         equipamento_id: e.equipamento_id,
         quantidade: e.quantidade,
+        valor_cobrado: (valorMap.get(e.equipamento_id) ?? 0) * e.quantidade,
       }));
 
       const { error: linkError } = await client
@@ -64,29 +76,51 @@ export class ContratosService {
     };
   }
 
+  private mapEquipamentos(contrato: any) {
+    const { contrato_equipamentos, contratosFilhos, sub_contratos, ...rest } = contrato;
+
+    const equipamentos = (contrato_equipamentos ?? []).map((ce: any) => ({
+      equipamento_id: ce.equipamento_id,
+      descricao: ce.equipamentos?.descricao,
+      valor_padrao: ce.equipamentos?.valor_padrao,
+      quantidade: ce.quantidade,
+      valor_cobrado: ce.valor_cobrado,
+    }));
+
+    const result: any = { ...rest, equipamentos };
+
+    if (contratosFilhos)
+      result.contratosFilhos = contratosFilhos.map((f: any) => this.mapEquipamentos(f));
+
+    if (sub_contratos)
+      result.sub_contratos = sub_contratos.map((f: any) => this.mapEquipamentos(f));
+
+    return result;
+  }
+
   async findAll(token: string) {
     const { data, error } = await this.getClient(token)
       .from('contratos')
       .select(
-        '*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))',
+        '*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao, valor_padrao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao, valor_padrao)))',
       )
       .is('contrato_pai_id', null);
 
     if (error) throw error;
-    return data;
+    return data.map((c) => this.mapEquipamentos(c));
   }
 
   async findOne(id: string, token: string) {
     const { data, error } = await this.getClient(token)
       .from('contratos')
       .select(
-        '*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))',
+        '*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao, valor_padrao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao, valor_padrao)))',
       )
       .eq('id', id)
       .single();
 
     if (error) throw error;
-    return data;
+    return this.mapEquipamentos(data);
   }
 
   async updateSignature(id: string, dto: UpdateSignatureDto, token: string) {
