@@ -18,7 +18,9 @@ export class ContratosService {
   }
 
   async create(dto: CreateContratoDto, userId: string, token: string) {
-    const { data, error } = await this.getClient(token)
+    const client = this.getClient(token);
+
+    const { data, error } = await client
       .from('contratos')
       .insert([{
         user_id: userId,
@@ -38,6 +40,32 @@ export class ContratosService {
       .single();
 
     if (error) throw error;
+
+    if (dto.equipamentos?.length) {
+      const ids = dto.equipamentos.map((e) => e.equipamentoId);
+
+      const { data: equips, error: equipsError } = await client
+        .from('equipamentos')
+        .select('id, valor_padrao')
+        .in('id', ids);
+
+      if (equipsError) throw equipsError;
+
+      const valorMap = new Map(equips.map((e) => [e.id, e.valor_padrao]));
+
+      const links = dto.equipamentos.map((e) => ({
+        contrato_id: data.id,
+        equipamento_id: e.equipamentoId,
+        quantidade: e.quantidade,
+        valor_cobrado: valorMap.get(e.equipamentoId) ?? 0,
+      }));
+
+      const { error: linkError } = await client
+        .from('contrato_equipamentos')
+        .insert(links);
+
+      if (linkError) throw linkError;
+    }
 
     return {
       id: data.id,

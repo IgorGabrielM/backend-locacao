@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsArray, ValidateNested, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class ContratoEquipamentoItemDto {
+  @IsUUID() equipamentoId: string;
+  @IsNumber() quantidade: number;
+}
 
 export class CreateContratoDto {
   @IsString() nome: string;
@@ -12,4 +18,10 @@ export class CreateContratoDto {
   @IsOptional() email?: string;
   @IsOptional() @IsString() dataEntrega?: string;
   @IsOptional() @IsUUID() contratoPaiId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ContratoEquipamentoItemDto)
+  equipamentos?: ContratoEquipamentoItemDto[];
 }
