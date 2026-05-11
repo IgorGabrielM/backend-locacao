@@ -5,7 +5,7 @@ export class CreateEquipamentoDto {
   descricao: string;
 
   @IsNumber()
-  valorPadrao: number;
+  valor_padrao: number;
 }
 
 export class UpdateEquipamentoDto {
@@ -15,7 +15,7 @@ export class UpdateEquipamentoDto {
 
   @IsOptional()
   @IsNumber()
-  valorPadrao?: number;
+  valor_padrao?: number;
 
   @IsOptional()
   @IsBoolean()

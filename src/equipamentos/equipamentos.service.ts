@@ -42,7 +42,7 @@ export class EquipamentosService {
   async create(dto: CreateEquipamentoDto, userId: string, token: string) {
     const { data, error } = await this.getClient(token)
       .from('equipamentos')
-      .insert([{ user_id: userId, descricao: dto.descricao, valor_padrao: dto.valorPadrao }])
+      .insert([{ user_id: userId, descricao: dto.descricao, valor_padrao: dto.valor_padrao }])
       .select()
       .single();
 
@@ -53,7 +53,7 @@ export class EquipamentosService {
   async update(id: string, dto: UpdateEquipamentoDto, token: string) {
     const payload: Record<string, unknown> = {};
     if (dto.descricao !== undefined) payload.descricao = dto.descricao;
-    if (dto.valorPadrao !== undefined) payload.valor_padrao = dto.valorPadrao;
+    if (dto.valor_padrao !== undefined) payload.valor_padrao = dto.valor_padrao;
     if (dto.ativo !== undefined) payload.ativo = dto.ativo;
 
     const { data, error } = await this.getClient(token)
