@@ -32,6 +32,7 @@ export class ContratosService {
         email: dto.email,
         data_entrega: dto.dataEntrega,
         status: 'Sem assinatura',
+        contrato_pai_id: dto.contratoPaiId ?? null,
       }])
       .select('id, telefone')
       .single();
@@ -48,7 +49,8 @@ export class ContratosService {
   async findAll(token: string) {
     const { data, error } = await this.getClient(token)
       .from('contratos')
-      .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao))');
+      .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))')
+      .is('contrato_pai_id', null);
 
     if (error) throw error;
     return data;
@@ -57,7 +59,7 @@ export class ContratosService {
   async findOne(id: string, token: string) {
     const { data, error } = await this.getClient(token)
       .from('contratos')
-      .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao))')
+      .select('*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))')
       .eq('id', id)
       .single();
 

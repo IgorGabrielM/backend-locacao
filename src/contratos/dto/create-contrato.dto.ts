@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateContratoDto {
   @IsString() nome: string;
@@ -11,4 +11,5 @@ export class CreateContratoDto {
   @IsString() telefone: string;
   @IsOptional() email?: string;
   @IsOptional() @IsString() dataEntrega?: string;
+  @IsOptional() @IsUUID() contratoPaiId?: string;
 }

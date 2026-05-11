@@ -6,6 +6,7 @@ import express from 'express';
 
 // 1. Criamos a instância do Express fora
 const server = express();
+server.set('etag', false);
 
 export const createNextServer = async (expressInstance: any) => {
   const app = await NestFactory.create(
@@ -33,6 +34,7 @@ export default async (req: any, res: any) => {
 if (process.env.NODE_ENV !== 'production') {
   async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+    app.getHttpAdapter().getInstance().set('etag', false);
     app.enableCors();
     app.useGlobalPipes(new ValidationPipe());
     await app.listen(3000);
