@@ -44,22 +44,10 @@ export class ContratosService {
     if (error) throw error;
 
     if (dto.equipamentos?.length) {
-      const ids = dto.equipamentos.map((e) => e.equipamento_id);
-
-      const { data: equips, error: equipsError } = await client
-        .from('equipamentos')
-        .select('id, valor_padrao')
-        .in('id', ids);
-
-      if (equipsError) throw equipsError;
-
-      const valorMap = new Map(equips.map((e) => [e.id, e.valor_padrao]));
-
       const links = dto.equipamentos.map((e) => ({
         contrato_id: data.id,
         equipamento_id: e.equipamento_id,
         quantidade: e.quantidade,
-        valor_cobrado: valorMap.get(e.equipamento_id) ?? 0,
       }));
 
       const { error: linkError } = await client
@@ -80,7 +68,7 @@ export class ContratosService {
     const { data, error } = await this.getClient(token)
       .from('contratos')
       .select(
-        '*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))',
+        '*, contrato_equipamentos(*, equipamento(id, descricao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamento(id, descricao)))',
       )
       .is('contrato_pai_id', null);
 
@@ -92,7 +80,7 @@ export class ContratosService {
     const { data, error } = await this.getClient(token)
       .from('contratos')
       .select(
-        '*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamentos(id, descricao, valor_padrao)))',
+        '*, contrato_equipamentos(*, equipamento(id, descricao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(*, equipamento(id, descricao)))',
       )
       .eq('id', id)
       .single();
@@ -139,7 +127,6 @@ export class ContratosService {
           contrato_id: contratoId,
           equipamento_id: dto.equipamento_id,
           quantidade: dto.quantidade,
-          valor_cobrado: dto.valorCobrado,
         },
       ])
       .select('*, equipamentos(id, descricao, valor_padrao)')

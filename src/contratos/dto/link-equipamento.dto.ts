@@ -6,7 +6,4 @@ export class LinkEquipamentoDto {
 
   @IsNumber()
   quantidade: number;
-
-  @IsNumber()
-  valorCobrado: number;
 }
