@@ -169,6 +169,17 @@ export class ContratosService {
     return data;
   }
 
+  async linkContratoPai(id: string, contratoPaiId: string | null | undefined, token: string) {
+    const { error } = await this.getClient(token)
+      .from('contratos')
+      .update({ contrato_pai_id: contratoPaiId ?? null })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return { message: 'Contrato pai atualizado com sucesso!' };
+  }
+
   async unlinkEquipamento(contratoId: string, itemId: string, token: string) {
     const { error } = await this.getClient(token)
       .from('contrato_equipamentos')

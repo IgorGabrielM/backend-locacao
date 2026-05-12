@@ -1,7 +1,7 @@
 import { Controller, Post, Delete, Body, Get, Param, Patch, HttpCode, UseGuards } from '@nestjs/common';
 import { ContratosService } from './contratos.service';
 import { CreateContratoDto } from './dto/create-contrato.dto';
-import { UpdateSignatureDto, UpdateClosureDto } from './dto/update-signature.dto';
+import { UpdateSignatureDto, UpdateClosureDto, LinkContratoPaiDto } from './dto/update-signature.dto';
 import { LinkEquipamentoDto } from './dto/link-equipamento.dto';
 import { JwtGuard } from '../auth/jwt.guard';
 import { CurrentUser, CurrentToken } from '../auth/current-user.decorator';
@@ -47,6 +47,15 @@ export class ContratosController {
     @CurrentToken() token: string,
   ) {
     return this.contratosService.closeContract(id, dto.dataEncerramento, token);
+  }
+
+  @Patch(':id/parent')
+  linkContratoPai(
+    @Param('id') id: string,
+    @Body() dto: LinkContratoPaiDto,
+    @CurrentToken() token: string,
+  ) {
+    return this.contratosService.linkContratoPai(id, dto.contratoPaiId, token);
   }
 
   @Post(':id/equipamentos')
