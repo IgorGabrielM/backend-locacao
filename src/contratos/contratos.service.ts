@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateSignatureDto } from './dto/update-signature.dto';
 import { LinkEquipamentoDto } from './dto/link-equipamento.dto';
+import { UpdateClienteDto } from './dto/update-cliente.dto';
 
 @Injectable()
 export class ContratosService {
@@ -178,6 +179,25 @@ export class ContratosService {
     if (error) throw error;
 
     return { message: 'Contrato pai atualizado com sucesso!' };
+  }
+
+  async updateCliente(id: string, dto: UpdateClienteDto, token: string) {
+    const payload: Record<string, any> = {};
+    if (dto.nome !== undefined) payload.nome = dto.nome;
+    if (dto.cpf !== undefined) payload.cpf = dto.cpf;
+    if (dto.rg !== undefined) payload.rg = dto.rg;
+    if (dto.telefone !== undefined) payload.telefone = dto.telefone;
+    if (dto.email !== undefined) payload.email = dto.email;
+    if (dto.endereco !== undefined) payload.endereco = dto.endereco;
+
+    const { error } = await this.getClient(token)
+      .from('contratos')
+      .update(payload)
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return { message: 'Dados do cliente atualizados com sucesso!' };
   }
 
   async unlinkEquipamento(contratoId: string, itemId: string, token: string) {

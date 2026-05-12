@@ -3,6 +3,7 @@ import { ContratosService } from './contratos.service';
 import { CreateContratoDto } from './dto/create-contrato.dto';
 import { UpdateSignatureDto, UpdateClosureDto, LinkContratoPaiDto } from './dto/update-signature.dto';
 import { LinkEquipamentoDto } from './dto/link-equipamento.dto';
+import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { JwtGuard } from '../auth/jwt.guard';
 import { CurrentUser, CurrentToken } from '../auth/current-user.decorator';
 
@@ -56,6 +57,15 @@ export class ContratosController {
     @CurrentToken() token: string,
   ) {
     return this.contratosService.linkContratoPai(id, dto.contratoPaiId, token);
+  }
+
+  @Patch(':id/cliente')
+  updateCliente(
+    @Param('id') id: string,
+    @Body() dto: UpdateClienteDto,
+    @CurrentToken() token: string,
+  ) {
+    return this.contratosService.updateCliente(id, dto, token);
   }
 
   @Post(':id/equipamentos')
