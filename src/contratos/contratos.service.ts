@@ -37,6 +37,7 @@ export class ContratosService {
           data_entrega: dto.dataEntrega,
           status: 'Sem assinatura',
           contrato_pai_id: dto.contratoPaiId ?? null,
+          frete: dto.frete ?? null,
         },
       ])
       .select('id, telefone')
@@ -54,7 +55,9 @@ export class ContratosService {
 
       if (equipsError) throw equipsError;
 
-      const valorMap = new Map(equips.map((e) => [e.id, e.valor_padrao as number]));
+      const valorMap = new Map(
+        equips.map((e) => [e.id, e.valor_padrao as number]),
+      );
 
       const links = dto.equipamentos.map((e) => ({
         contrato_id: data.id,
@@ -78,7 +81,7 @@ export class ContratosService {
   }
 
   private mapEquipamentos(contrato: any) {
-    const { contrato_equipamentos, contratosFilhos, sub_contratos, ...rest } = contrato;
+    const { contrato_equipamentos, sub_contratos, ...rest } = contrato;
 
     const equipamentos = (contrato_equipamentos ?? []).map((ce: any) => ({
       equipamento_id: ce.equipamento_id,
@@ -88,9 +91,6 @@ export class ContratosService {
     }));
 
     const result: any = { ...rest, equipamentos };
-
-    if (contratosFilhos)
-      result.contratosFilhos = contratosFilhos.map((f: any) => this.mapEquipamentos(f));
 
     if (sub_contratos)
       result.sub_contratos = sub_contratos.map((f: any) => this.mapEquipamentos(f));
@@ -102,7 +102,7 @@ export class ContratosService {
     const { data, error } = await this.getClient(token)
       .from('contratos')
       .select(
-        '*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao)), contratosFilhos:contratos!contrato_pai_id(*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao)))',
+        '*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao)), sub_contratos:contratos!contrato_pai_id(*, contrato_equipamentos(equipamento_id, quantidade, valor_cobrado, equipamentos(descricao)))',
       )
       .is('contrato_pai_id', null);
 

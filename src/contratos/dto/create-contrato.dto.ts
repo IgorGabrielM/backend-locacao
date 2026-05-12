@@ -18,6 +18,7 @@ export class CreateContratoDto {
   @IsOptional() email?: string;
   @IsOptional() @IsString() dataEntrega?: string;
   @IsOptional() @IsUUID() contratoPaiId?: string;
+  @IsOptional() @IsNumber() frete?: number;
 
   @IsOptional()
   @IsArray()
