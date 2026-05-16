@@ -124,16 +124,38 @@ export class ContratosService {
   }
 
   async updateSignature(id: string, dto: UpdateSignatureDto, token: string) {
-    const { data, error } = await this.getClient(token)
+    const client = this.getClient(token);
+
+    const { data, error } = await client
       .from('contratos')
       .update({ signature: dto.signature, status: 'Em andamento' })
       .eq('id', id)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      const { data: existing, error: fetchError } = await client
+        .from('contratos')
+        .select('id')
+        .eq('id', id)
+        .single();
 
-    return { message: 'Assinatura salva com sucesso!', id: data.id };
+      if (fetchError || !existing) throw error;
+    }
+
+    const { data: children } = await client
+      .from('contratos')
+      .select('id')
+      .eq('contrato_pai_id', id);
+
+    if (children?.length) {
+      await client
+        .from('contratos')
+        .update({ signature: dto.signature, status: 'Em andamento' })
+        .in('id', children.map((c) => c.id));
+    }
+
+    return { message: 'Assinatura salva com sucesso!', id: data?.id ?? id };
   }
 
   async closeContract(id: string, dataEncerramento: string, token: string) {
