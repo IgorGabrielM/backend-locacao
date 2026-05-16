@@ -63,7 +63,7 @@ export class ContratosService {
         contrato_id: data.id,
         equipamento_id: e.equipamento_id,
         quantidade: e.quantidade,
-        valor_cobrado: (valorMap.get(e.equipamento_id) ?? 0) * e.quantidade,
+        valor_cobrado: valorMap.get(e.equipamento_id) ?? 0,
       }));
 
       const { error: linkError } = await client
